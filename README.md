@@ -12,6 +12,13 @@ Servicio de pagos con luka UPEA
 $ yarn install
 ```
 
+## Configure env
+```bash
+cp .env.copy .env
+
+# Edit .env
+```
+
 ## Compile and run the project
 
 ```bash

@@ -5,18 +5,18 @@ import { UpdateTipoConceptoDto } from './dto/update-tipo-concepto.dto';
 
 @Controller('tipo-concepto')
 export class TipoConceptoController {
-  constructor(
-    private readonly tipoConceptoService: TipoConceptoService
-  ) { }
+  // constructor(
+  //   private readonly tipoConceptoService: TipoConceptoService
+  // ) { }
 
-  @Get()
-  @Version('1')
-  findAll() {
-    return this.tipoConceptoService.findAll();
-  }
+  // @Get()
+  // @Version('1')
+  // findAll() {
+  //   return this.tipoConceptoService.findAll();
+  // }
 
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.tipoConceptoService.findOne(id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: number) {
+  //   return this.tipoConceptoService.findOne(id);
+  // }
 }

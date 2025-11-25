@@ -14,7 +14,7 @@ export class ApiKeyGuard implements CanActivate {
             throw new UnauthorizedException({
                 success: false,
                 message: 'Sin cabecera de autorizacion.',
-                error: 'Unauthorized'
+                error: 'UnauthorizedException'
             });
         }
 

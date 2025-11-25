@@ -7,7 +7,7 @@ import { Concepto } from './entities/concepto.entity';
 @Module({
   controllers: [ConceptoController],
   providers: [ConceptoService],
-  imports: [TypeOrmModule.forFeature([Concepto], 'tesoro')],
+  imports: [TypeOrmModule.forFeature([Concepto], process.env.NEST_DB_TESORO_NAME)],
   exports: [ConceptoService]
 })
 export class ConceptoModule { }

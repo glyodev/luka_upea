@@ -8,7 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   controllers: [UnidadMovimientoController],
   providers: [UnidadMovimientoService],
   imports: [
-    TypeOrmModule.forFeature([UnidadMovimiento], 'tesoro')
+    TypeOrmModule.forFeature([UnidadMovimiento], process.env.NEST_DB_TESORO_NAME)
   ],
   exports: [UnidadMovimientoService]
 })

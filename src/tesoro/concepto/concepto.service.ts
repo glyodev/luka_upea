@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 @Injectable()
 export class ConceptoService {
   constructor(
-    @InjectRepository(Concepto, 'tesoro')
+    @InjectRepository(Concepto, process.env.NEST_DB_TESORO_NAME)
     private readonly conceptoService: Repository<Concepto>
   ) { }
 

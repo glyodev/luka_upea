@@ -5,17 +5,17 @@ import { UpdateConceptoDto } from './dto/update-concepto.dto';
 
 @Controller('concepto')
 export class ConceptoController {
-  constructor(private readonly conceptoService: ConceptoService) {}
+  // constructor(private readonly conceptoService: ConceptoService) {}
 
-  @Get()
-  @Version('1')
-  findAll() {
-    return this.conceptoService.findAll();
-  }
+  // @Get()
+  // @Version('1')
+  // findAll() {
+  //   return this.conceptoService.findAll();
+  // }
 
-  @Get(':id')
-  @Version('1')
-  findOne(@Param('id') id: number) {
-    return this.conceptoService.findOne(id);
-  }
+  // @Get(':id')
+  // @Version('1')
+  // findOne(@Param('id') id: number) {
+  //   return this.conceptoService.findOne(id);
+  // }
 }

@@ -8,7 +8,7 @@ export class IsDateFormatConstraint implements ValidatorConstraintInterface {
     }
 
     defaultMessage(): string {
-        return 'La fecha debe estar en formato YYYY-MM-DD';
+        return 'La fecha debe estar en formato DD-MM-YYYY';
     }
 }
 

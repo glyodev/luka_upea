@@ -2,22 +2,23 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { VistaPersona } from './entities/vista_persona.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindPersonaDto } from './dto/find-persona.dto';
 import { Estado } from 'src/common/enums/estado.enum';
-import { TipoConceptoService } from 'src/tipo-concepto/tipo-concepto.service';
+import { TipoConceptoService } from 'src/tesoro/tipo-concepto/tipo-concepto.service';
+import { DeudaService } from 'src/tesoro/deuda/deuda.service';
 
 @Injectable()
 export class VistaPersonaService {
   constructor(
     @InjectRepository(VistaPersona, 'base_upea')
     private readonly vistaPersonaRepository: Repository<VistaPersona>,
-    private readonly tipoConceptoService: TipoConceptoService
+    private readonly tipoConceptoService: TipoConceptoService,
+    private readonly deudaService: DeudaService
   ) { }
 
-  async findPersona(data: FindPersonaDto) {
-    const persona = await this.vistaPersonaRepository.findOne({
+  async findPersona(ci: string) {
+    const persona: VistaPersona = await this.vistaPersonaRepository.findOne({
       where: {
-        ci: data.ci,
+        ci,
         estado: Estado.ACTIVO
       }
     });
@@ -25,25 +26,53 @@ export class VistaPersonaService {
     if (!persona) {
       throw new NotFoundException({
         success: false,
-        message: "La persona con CI '" + data.ci + "' no existe en los registros",
-        error: 'Persona not Found'
+        message: "La persona con CI '" + ci + "' no existe en los registros",
+        error: 'NotFoundException'
       })
     }
 
-    const tipo_concepto = await this.tipoConceptoService.findAll()
+    const deudas = await this.deudaService.findByCi(ci)
+    const tipo_concepto = await this.tipoConceptoService.findAllByNacionalidad(persona.nacionalidad)
 
     return {
       success: true,
-      message: "Persona encontrada, listando tipos de pagos,",
+      message: "Persona encontrada, listando deudas y pagos disponibles",
       data: {
-        persona: {
-          ci: persona.ci,
-          nombres: persona.nombre,
-          apellidos: `${persona.paterno} ${persona.materno}`,
-          email: persona.email,
-        },
+        ci: persona.ci,
+        nombres: persona.nombre,
+        apellidos: `${persona.paterno} ${persona.materno}`,
+        email: persona.email,
+        deudas: deudas,
         tipo_pagos: tipo_concepto
       }
     }
+  }
+
+  async findOne(ci: string) {
+    const persona = await this.vistaPersonaRepository.findOne({
+      where: {
+        ci,
+        estado: Estado.ACTIVO
+      }
+    });
+
+    if (!persona) {
+      throw new NotFoundException({
+        success: false,
+        message: "La persona con CI '" + ci + "' no existe en los registros",
+        error: 'NotFoundException'
+      })
+    }
+
+    return persona
+  }
+
+  findOneByCi(ci: string) {
+    return this.vistaPersonaRepository.findOne({
+      where: {
+        ci,
+        estado: Estado.ACTIVO
+      }
+    });
   }
 }

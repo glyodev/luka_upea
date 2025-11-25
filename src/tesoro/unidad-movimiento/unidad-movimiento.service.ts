@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 @Injectable()
 export class UnidadMovimientoService {
   constructor(
-    @InjectRepository(UnidadMovimiento, 'tesoro')
+    @InjectRepository(UnidadMovimiento, process.env.NEST_DB_TESORO_NAME)
     private readonly unidadMovimientoRepository: Repository<UnidadMovimiento>,
   ) { }
 

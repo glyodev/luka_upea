@@ -1,5 +1,5 @@
 export enum TipoNacionalidad {
-    NACIONALES = 'nacionales',
-    EXTRANJEROS = 'extranjeros',
+    NACIONAL = 'nacional',
+    EXTRANJERO = 'extranjero',
     AMBOS = 'ambos'
 }

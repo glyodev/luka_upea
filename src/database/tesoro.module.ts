@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Concepto } from 'src/concepto/entities/concepto.entity';
-import { TipoConcepto } from 'src/tipo-concepto/entities/tipo-concepto.entity';
-import { UnidadMovimiento } from 'src/unidad-movimiento/entities/unidad-movimiento.entity';
+import { Concepto } from 'src/tesoro/concepto/entities/concepto.entity';
+import { Orden } from 'src/tesoro/orden/entities/orden.entity';
+import { TipoConcepto } from 'src/tesoro/tipo-concepto/entities/tipo-concepto.entity';
+import { UnidadMovimiento } from 'src/tesoro/unidad-movimiento/entities/unidad-movimiento.entity';
 
 @Module({
     imports: [
@@ -20,10 +21,11 @@ import { UnidadMovimiento } from 'src/unidad-movimiento/entities/unidad-movimien
             database: process.env.NEST_DB_TESORO_NAME,
             autoLoadEntities: false,
             synchronize: false,
+            timezone: 'Z',
             entities: [
-                TipoConcepto, Concepto, UnidadMovimiento
+                TipoConcepto, Concepto, UnidadMovimiento, Orden
             ],
-            name: 'tesoro'
+            name: process.env.NEST_DB_TESORO_NAME
         }),
     ],
 })

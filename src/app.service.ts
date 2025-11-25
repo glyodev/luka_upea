@@ -5,7 +5,8 @@ export class AppService {
   getHello(): Object {
     return {
       success: true,
-      message: 'Servicio pagos UPEA ejecutandose correctamente.'
+      message: 'Servicio pagos UPEA ejecutandose correctamente.',
+      data: []
     }
   }
 }

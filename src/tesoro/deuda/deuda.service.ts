@@ -5,7 +5,7 @@ import { CreateDeudaDto } from './dto/deuda.dto';
 import { VistaPersonaService } from 'src/vista_persona/vista_persona.service';
 import { ConceptoService } from '../concepto/concepto.service';
 import { CreateOrdenDto } from '../orden/dto/create-orden.dto';
-import { EstadoPago, EstadoText } from 'src/common/enums/estado-pago.enum';
+import { EstadoPago, EstadoText, EstadoTextDetalle } from 'src/common/enums/estado-pago.enum';
 import { UpdateOrdenDto } from '../orden/dto/update-orden.dto';
 import { CreatePagoDto } from './dto/pago.dto';
 
@@ -39,19 +39,20 @@ export class DeudaService {
                     descripcion: element.descripcion,
                     estado_pago: element.estado_pago,
                     monto_total: element.monto_total,
-                    fecha: element.creado_el
+                    fecha_modificacion: element.modificado_el
                 })
             }
         }
 
-        return {
-            success: true,
-            message: deudasPersona.length > 0 ? 'Deudas pendientes' : 'Sin deudas pendientes',
-            data: deudasPersona
-        }
+        // return {
+        //     success: true,
+        //     message: deudasPersona.length > 0 ? 'Deudas pendientes' : 'Sin deudas pendientes',
+        //     data: deudasPersona
+        // }
+        return deudasPersona
     }
 
-    async findByCod(cod: string, ci?: string) {
+    async findByCod(cod: string, ci: string) {
         const deuda: Orden = await this.ordenService.findByCod(cod, ci);
         let deudaPersona = {}
 
@@ -63,20 +64,20 @@ export class DeudaService {
             })
         }
 
-        if (deuda.estado_pago === EstadoPago.EN_PROCESO) {
-            deudaPersona = {
-                codigo_pago: deuda.codigo_pago,
-                descripcion: deuda.descripcion,
-                concepto: deuda.concepto.concepto,
-                estado_pago: deuda.estado_pago,
-                monto_total: deuda.monto_total,
-                fecha: deuda.creado_el
-            }
+        // if (deuda.estado_pago === EstadoPago.EN_PROCESO) {
+        deudaPersona = {
+            codigo_pago: deuda.codigo_pago,
+            descripcion: deuda.descripcion,
+            concepto: deuda.concepto.concepto,
+            estado_pago: deuda.estado_pago,
+            monto_total: deuda.monto_total,
+            fecha_modificacion: deuda.modificado_el
         }
+        // }
 
         return {
             success: true,
-            message: 'Deuda N°' + deuda.codigo_pago + '. ' + EstadoText[deuda.estado_pago],
+            message: 'La deuda N°' + deuda.codigo_pago + ' ' + EstadoTextDetalle[deuda.estado_pago],
             data: deudaPersona
         }
     }
@@ -95,7 +96,7 @@ export class DeudaService {
                     concepto: or.concepto.concepto,
                     monto_total: or.monto_total,
                     estado_pago: or.estado_pago,
-                    fecha: or.creado_el
+                    fecha_modificacion: or.modificado_el
                 }
             })
         }
@@ -135,7 +136,7 @@ export class DeudaService {
                 estudiante: `${persona.nombre} ${persona.paterno} ${persona.materno}`,
                 concepto: concepto.concepto,
                 monto_total: orden.monto_total,
-                fecha: orden.creado_el
+                fecha_modificacion: orden.modificado_el
             }
         }
     }

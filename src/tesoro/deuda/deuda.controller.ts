@@ -1,6 +1,6 @@
-import { BadRequestException, Body, Controller, Get, Param, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { DeudaService } from './deuda.service';
-import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { CreatePagoDto } from './dto/pago.dto';
 import { ApiKeyGuard } from 'src/common/guards/api-key.guard';
 
@@ -10,41 +10,31 @@ import { ApiKeyGuard } from 'src/common/guards/api-key.guard';
 export class DeudaController {
     constructor(private readonly deudaService: DeudaService) { }
 
-    @Get()
+    @Get(':ci/:cod')
     @ApiOperation({ summary: 'Lista de deudas de un estudiante' })
-    @ApiQuery({ name: 'ci', required: false, description: 'Cédula de identidad de la persona' })
-    @ApiQuery({ name: 'cod', required: false, description: 'Código una deuda' })
+    @ApiParam({ name: 'ci', required: true, description: 'Cédula de identidad de la persona' })
+    @ApiParam({ name: 'cod', required: true, description: 'Código una deuda' })
     @ApiResponse({ status: 200, description: 'Devuelve una lista de las deudas de un estudiante segun si CI y/o el codigo de pago' })
     @ApiResponse({ status: 400, description: 'Error en la validación de datos' })
     @ApiResponse({ status: 401, description: 'Sin cabecera de autorizacion' })
     @ApiResponse({ status: 404, description: 'Estudiante o deuda no encontrada' })
     @ApiSecurity('x-api-key')
     async findOne(
-        @Query('ci') ci?: string,
-        @Query('cod') cod?: string,
+        @Param('ci') ci: string,
+        @Param('cod') cod: string,
     ) {
         // Validación de parámetros
-        if (!ci && !cod) {
-            throw new BadRequestException({
-                success: false,
-                message: 'Ningún parámetro de búsqueda',
-                error: 'BadRequestException'
-            });
-        }
+        // if (!ci && !cod) {
+        //     throw new BadRequestException({
+        //         success: false,
+        //         message: 'Ningún parámetro de búsqueda',
+        //         error: 'BadRequestException'
+        //     });
+        // }
 
-        if (cod && ci) {
-            return this.deudaService.findByCod(cod, ci);
-        }
-
-        // Si viene cod, ignoramos ci
-        if (cod) {
-            return this.deudaService.findByCod(cod);
-        }
-
-        // Si no hay cod pero sí ci
-        if (ci) {
-            return this.deudaService.findByCi(ci);
-        }
+        // if (cod && ci) {
+        return this.deudaService.findByCod(cod, ci);
+        // }
     }
 
     @Put(':ci/:cod')

@@ -27,7 +27,7 @@ export class OrdenService {
       eliminado_el: null
     });
   }
-  findByCod(cod: string, ci?: string) {
+  findByCod(cod: string, ci: string) {
     if (ci) {
       return this.ordenRepository.findOne({
         where: {

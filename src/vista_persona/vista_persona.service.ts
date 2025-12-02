@@ -5,12 +5,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Estado } from 'src/common/enums/estado.enum';
 import { TipoConceptoService } from 'src/tesoro/tipo-concepto/tipo-concepto.service';
 import { DeudaService } from 'src/tesoro/deuda/deuda.service';
+import { VistaMaeMatriculados } from './entities/mae-matriculados.entity';
 
 @Injectable()
 export class VistaPersonaService {
   constructor(
     @InjectRepository(VistaPersona, 'base_upea')
     private readonly vistaPersonaRepository: Repository<VistaPersona>,
+    @InjectRepository(VistaMaeMatriculados, 'base_upea')
+    private readonly vistaMaeMatriculadosRepository: Repository<VistaMaeMatriculados>,
     private readonly tipoConceptoService: TipoConceptoService,
     private readonly deudaService: DeudaService
   ) { }
@@ -31,7 +34,7 @@ export class VistaPersonaService {
       })
     }
 
-    const deudas = await this.deudaService.findByCi(ci)
+    const deudas = await this.deudaService.findAllByCi(ci)
     const tipo_concepto = await this.tipoConceptoService.findAllByNacionalidad(persona.nacionalidad)
 
     return {
@@ -72,6 +75,16 @@ export class VistaPersonaService {
       where: {
         ci,
         estado: Estado.ACTIVO
+      }
+    });
+  }
+  findOneByCiRu(ci: string) {
+    return this.vistaMaeMatriculadosRepository.findOne({
+      where: {
+        ci
+      },
+      order: {
+        gestion: 'DESC'
       }
     });
   }

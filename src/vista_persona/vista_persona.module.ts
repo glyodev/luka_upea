@@ -5,12 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { VistaPersona } from './entities/vista_persona.entity';
 import { TipoConceptoModule } from 'src/tesoro/tipo-concepto/tipo-concepto.module';
 import { DeudaModule } from 'src/tesoro/deuda/deuda.module';
+import { VistaMaeMatriculados } from './entities/mae-matriculados.entity';
 
 @Module({
   controllers: [VistaPersonaController],
   providers: [VistaPersonaService],
   imports: [
-    TypeOrmModule.forFeature([VistaPersona], 'base_upea'),
+    TypeOrmModule.forFeature([VistaPersona, VistaMaeMatriculados], 'base_upea'),
 
     TipoConceptoModule,
     forwardRef(() => DeudaModule)

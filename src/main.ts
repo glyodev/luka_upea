@@ -10,8 +10,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { VistaPersonaModule } from './vista_persona/vista_persona.module';
 import { DeudaModule } from './tesoro/deuda/deuda.module';
 
-import { join } from 'path';
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -81,7 +79,7 @@ async function bootstrap() {
         display:;
       }
       .swagger-ui .topbar .topbar-wrapper::after {
-        content: "Última actualización: 25/11/2025";
+        content: "Última actualización: 01/12/2025";
         color: #fff;
         font-size: 0.9rem;
         margin-left: auto;

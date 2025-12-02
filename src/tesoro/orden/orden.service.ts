@@ -5,26 +5,38 @@ import { Repository } from 'typeorm';
 import { Orden } from './entities/orden.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EstadoPago } from 'src/common/enums/estado-pago.enum';
+import { OrdenConcepto } from './entities/orden-concepto.entity';
+import { CreateOrdenConceptoDto } from './dto/create-orden-concepto.dto';
 
 @Injectable()
 export class OrdenService {
   constructor(
     @InjectRepository(Orden, process.env.NEST_DB_TESORO_NAME)
-    private readonly ordenRepository: Repository<Orden>
+    private readonly ordenRepository: Repository<Orden>,
+    @InjectRepository(OrdenConcepto, process.env.NEST_DB_TESORO_NAME)
+    private readonly ordenConceptoRepository: Repository<OrdenConcepto>,
   ) { }
 
   create(createOrdenDto: CreateOrdenDto) {
     return this.ordenRepository.save(createOrdenDto);
   }
 
+  createConcepto(createOrdenConceptoDto: CreateOrdenConceptoDto) {
+    return this.ordenConceptoRepository.save(createOrdenConceptoDto);
+  }
+
+
   findAll() {
     return this.ordenRepository.find();
   }
 
   findAllCi(ci: string) {
-    return this.ordenRepository.findBy({
-      ci,
-      eliminado_el: null
+    return this.ordenRepository.find({
+      where: {
+        ci,
+        eliminado_el: null
+      },
+      relations: ['orden_concepto']
     });
   }
   findByCod(cod: string, ci: string) {
@@ -35,7 +47,7 @@ export class OrdenService {
           eliminado_el: null,
           ci: ci
         },
-        relations: ['concepto']
+        relations: ['orden_concepto']
       });
     } else {
       return this.ordenRepository.findOne({
@@ -43,7 +55,7 @@ export class OrdenService {
           codigo_pago: cod,
           eliminado_el: null
         },
-        relations: ['concepto']
+        relations: ['orden_concepto']
       });
 
     }
@@ -56,15 +68,19 @@ export class OrdenService {
     });
   }
 
-  findOneByOrden(ci: string, id_concepto: number) {
-    return this.ordenRepository.findOne({
+  async findOneByOrden(ci: string, id_concepto: number) {
+    return await this.ordenRepository.findOne({
       where: {
         ci,
-        id_concepto,
         estado_pago: EstadoPago.EN_PROCESO,
-        eliminado_el: null
+        eliminado_el: null,
+        orden_concepto: {
+          id_concepto: id_concepto
+        }
       },
-      relations: ['concepto']
+      relations: {
+        orden_concepto: true
+      }
     });
   }
 

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsOptional, IsString, MinLength } from "class-validator";
+import { IsDecimal, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateDeudaDto {
     @ApiProperty({ description: 'Cédula de identidad de la persona', required: true })
@@ -14,9 +14,4 @@ export class CreateDeudaDto {
     @IsOptional()
     @IsString({ message: 'La nota adicional debe ser un texto' })
     nota?: string
-
-    @ApiProperty({ description: 'El codigo QR en texto', required: false })
-    @IsOptional()
-    @IsString({ message: 'El QR debe ser un texto' })
-    qr?: string
 }

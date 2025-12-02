@@ -30,7 +30,7 @@ export class VistaPersonaController {
   @ApiResponse({ status: 401, description: 'Sin cabecera de autorizacion' })
   @ApiResponse({ status: 400, description: 'Error en la validación de datos' })
   @ApiResponse({ status: 404, description: 'Estudiante o concepto no encontrado' })
-  @ApiResponse({ status: 409, description: 'Ya existe una deuda igual' })
+  @ApiResponse({ status: 409, description: 'Ya existe una deuda pendiente' })
   @ApiSecurity('x-api-key')
   @Post()
   registrarDeuda(@Body() deuda: CreateDeudaDto) {

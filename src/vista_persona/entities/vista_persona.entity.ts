@@ -3,7 +3,7 @@ import { Expedido } from "src/common/enums/expedido.enum";
 import { Genero } from "src/common/enums/genero.enum";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
-@Entity('vista_persona')
+@Entity('vista_persona', { database: process.env.NEST_DB_BASE_UPEA_NAME })
 export class VistaPersona {
     @PrimaryColumn()
     id: number;

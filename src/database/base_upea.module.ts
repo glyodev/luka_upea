@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { VistaMaeMatriculados } from 'src/vista_persona/entities/mae-matriculados.entity';
 import { VistaPersona } from 'src/vista_persona/entities/vista_persona.entity';
 
 @Module({
@@ -18,7 +19,7 @@ import { VistaPersona } from 'src/vista_persona/entities/vista_persona.entity';
       database: process.env.NEST_DB_BASE_UPEA_NAME,
       autoLoadEntities: false,
       synchronize: false,
-      entities: [VistaPersona],
+      entities: [VistaPersona, VistaMaeMatriculados],
       name: 'base_upea'
     }),
   ],

@@ -174,17 +174,9 @@ export class DeudaService {
     }
 
     async crearOrden(deuda: CreateDeudaDto) {
+        // Verificar si ya existe una deuda similar para no crear otro
         const or = await this.ordenService.findOneByOrden(deuda.ci, deuda.id_concepto)
-
         if (or) {
-            const conceptos = or.orden_concepto.map(element => ({
-                id_concepto: element.id_concepto,
-                descripcion: element.descripcion,
-                gestion: element.gestion,
-                carrera: element.carrera,
-                monto_minimo: element.monto_minimo
-            }));
-
             throw new ConflictException({
                 success: false,
                 message: 'Ya existe una deuda igual, complete el pago anterior antes de realizar uno nuevo',
@@ -195,15 +187,23 @@ export class DeudaService {
                     monto_total: or.monto_total,
                     estado_pago: or.estado_pago,
                     fecha_modificacion: or.modificado_el,
-                    conceptos: conceptos
+                    conceptos: or.orden_concepto.map(element => ({
+                        id_concepto: element.id_concepto,
+                        descripcion: element.descripcion,
+                        gestion: element.gestion,
+                        carrera: element.carrera,
+                        monto_minimo: element.monto_minimo
+                    }))
                 }
             })
         }
 
+        // Obtener info adicional
         const persona = await this.vistaPersonaService.findOne(deuda.ci);
         const matricula = await this.vistaPersonaService.findOneByCiRu(deuda.ci);
-        const concepto = await this.conceptoService.findOne(deuda.id_concepto)
 
+        // Buscar que el id_concepto exista
+        const concepto = await this.conceptoService.findOne(deuda.id_concepto)
         if (!concepto) {
             throw new NotFoundException({
                 success: false,
@@ -213,17 +213,34 @@ export class DeudaService {
         }
 
         try {
+            // Contar deudas para tener como correlativo
             const correlativo = await this.ordenService.findAll()
 
+            // La fecha actual con hora 23:59:59 (expiracion que luka propone), si no lo agrega se pone este por defecto
+            const now = new Date();
+            const pad = (n: number) => n.toString().padStart(2, '0');
+            const fecha = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} 23:59:59`;
+
+            // Codigo unico, 4 ultimos digitos del ci y el correlativo
+            const codigo = persona.ci.slice(-4) + (correlativo.length + 1).toString().padStart(4, '0')
+
+            // Datos de la orden
             const nuevaOrden: CreateOrdenDto = {
+                codigo_pago: codigo,
                 descripcion: `Cta. ${persona.nombre} ${persona.paterno} ${persona.materno}`,
                 ci: persona.ci,
-                codigo_pago: persona.ci.slice(-4) + (correlativo.length + 1).toString().padStart(4, '0'),
-                monto_total: concepto.montoMinimo + 1.00,
-                nota_adicional: deuda.nota,
+                qr_codigo: deuda.qr_codigo, // opcional
+                codigo_transaccion: deuda.codigo_transaccion, // opcional
+                expiracion: deuda.expiracion ?? fecha, // opcional (pero fecha por defecto)
+                comision: deuda.comision ?? 1, // opcional (pero por defecto 1bs)
+                monto_total: concepto.montoMinimo + (deuda.comision ?? 1), // monto minimo mas la comision
+                nota_adicional: deuda.nota, // opcional
             }
 
+            // Guarda la deuda
             const orden = await this.ordenService.create(nuevaOrden);
+
+            // Para casos de multiples pagos -> "mientras" solo guarda uno solo
             const nuevaOrdenConcepto: CreateOrdenConceptoDto = {
                 id_concepto: concepto.id,
                 descripcion: concepto.concepto,
@@ -234,6 +251,7 @@ export class DeudaService {
             }
             const ordenConcepto = await this.ordenService.createConcepto(nuevaOrdenConcepto);
 
+            // Retorna info de la deuda (opcional para luka)
             return {
                 success: true,
                 message: 'Deuda registrada correctamente',
@@ -278,7 +296,7 @@ export class DeudaService {
         // Validar expiracion
         console.log(new Date(pago.expiracion));
         console.log(new Date());
-        
+
         if (pago.expiracion) {
             if (new Date(pago.expiracion) < new Date()) {
                 await this.ordenService.update(orden.id, {

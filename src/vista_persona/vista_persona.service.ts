@@ -15,10 +15,11 @@ export class VistaPersonaService {
     @InjectRepository(VistaMaeMatriculados, 'base_upea')
     private readonly vistaMaeMatriculadosRepository: Repository<VistaMaeMatriculados>,
     private readonly tipoConceptoService: TipoConceptoService,
-    private readonly deudaService: DeudaService
+    // private readonly deudaService: DeudaService
   ) { }
 
   async findPersona(ci: string) {
+    // Verifica si el CI existe
     const persona: VistaPersona = await this.vistaPersonaRepository.findOne({
       where: {
         ci,
@@ -29,24 +30,28 @@ export class VistaPersonaService {
     if (!persona) {
       throw new NotFoundException({
         success: false,
-        message: "La persona con CI '" + ci + "' no existe en los registros",
+        message: "La persona con CI " + ci + " no existe en los registros",
         error: 'NotFoundException'
       })
     }
 
-    const deudas = await this.deudaService.findAllByCi(ci)
+    // Listar deudas que tiene el estudiante (ya no)
+    // const deudas = await this.deudaService.findAllByCi(ci)
+
+    // Lista conceptos segun nacionalidad, solo bolivianos como nacional
     const tipo_concepto = await this.tipoConceptoService.findAllByNacionalidad(persona.nacionalidad)
 
     return {
       success: true,
-      message: "Persona encontrada, listando deudas y pagos disponibles",
+      message: "Estudiante",
       data: {
-        ci: persona.ci,
-        nombres: persona.nombre,
-        apellidos: `${persona.paterno} ${persona.materno}`,
-        email: persona.email,
-        deudas: deudas,
-        tipo_pagos: tipo_concepto
+        // datos: {
+        //   ci: persona.ci,
+        //   nombres: persona.nombre,
+        //   apellidos: `${persona.paterno} ${persona.materno}`,
+        //   email: persona.email
+        // },
+        ...tipo_concepto
       }
     }
   }

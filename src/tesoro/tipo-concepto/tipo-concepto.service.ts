@@ -16,15 +16,16 @@ export class TipoConceptoService {
   ) { }
 
   async findAllByNacionalidad(nacionalidad: string) {
+    // Tipos de conceptos para listar
     const tipos = await this.tipoConceptoRepository.find()
     const tiposConcepto = []
 
     for (const element of tipos) {
+      // Conceptos por tipos
       const conceptosAll = await this.conceptoService.findAllByOne(element.id);
       const conceptos = []
       for (const concepto of conceptosAll) {
-        // const unidad = await this.unidadMovimientoService.findOne(concepto.unidadMovimiento_id)
-
+        // Verifica si es de Bolivia para que solo liste conceptos de tipo ambos o nacionales
         if (nacionalidad === 'BOLIVIA') {
           if (concepto.tipoNacionalidad !== TipoNacionalidad.EXTRANJERO) {
             conceptos.push({
@@ -34,7 +35,7 @@ export class TipoConceptoService {
               tipo_nacionalidad: concepto.tipoNacionalidad,
             })
           }
-        } else {
+        } else { // Extranjeros
           if (concepto.tipoNacionalidad === TipoNacionalidad.EXTRANJERO) {
             conceptos.push({
               id_concepto: concepto.id,
@@ -54,7 +55,7 @@ export class TipoConceptoService {
       }
     }
 
-    // [0] Solo matriculacion
+    // [0] Solo matriculacion (mientras)
     return tiposConcepto[0]
   }
 

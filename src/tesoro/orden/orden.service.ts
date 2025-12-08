@@ -62,9 +62,12 @@ export class OrdenService {
   }
 
   findOne(id: number) {
-    return this.ordenRepository.findOneBy({
-      id,
-      eliminado_el: null
+    return this.ordenRepository.findOne({
+      where: {
+        id,
+        eliminado_el: null
+      },
+      relations: ['orden_concepto']
     });
   }
 
@@ -77,6 +80,19 @@ export class OrdenService {
         orden_concepto: {
           id_concepto: id_concepto
         }
+      },
+      relations: {
+        orden_concepto: true
+      }
+    });
+  }
+
+  async findOneByCodigo(codigo_pago: string) {
+    return await this.ordenRepository.findOne({
+      where: {
+        codigo_pago: codigo_pago,
+        estado_pago: EstadoPago.EN_PROCESO,
+        eliminado_el: null
       },
       relations: {
         orden_concepto: true

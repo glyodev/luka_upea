@@ -5,11 +5,11 @@ import { CreateDeudaDto } from './dto/deuda.dto';
 import { VistaPersonaService } from 'src/vista_persona/vista_persona.service';
 import { ConceptoService } from '../concepto/concepto.service';
 import { CreateOrdenDto } from '../orden/dto/create-orden.dto';
-import { EstadoPago, EstadoText, EstadoTextDetalle } from 'src/common/enums/estado-pago.enum';
+import { EstadoPago, EstadoTextDetalle } from 'src/common/enums/estado-pago.enum';
 import { UpdateOrdenDto } from '../orden/dto/update-orden.dto';
 import { CreatePagoDto } from './dto/pago.dto';
-import { Estado } from 'src/common/enums/estado.enum';
 import { CreateOrdenConceptoDto } from '../orden/dto/create-orden-concepto.dto';
+import { CreateGenerarQrDto } from './dto/generar-qr.dto';
 
 @Injectable()
 export class DeudaService {
@@ -173,9 +173,11 @@ export class DeudaService {
         }
     }
 
+    // Crear una deuda con una orden
     async crearOrden(deuda: CreateDeudaDto) {
         // Verificar si ya existe una deuda similar para no crear otro
         const or = await this.ordenService.findOneByOrden(deuda.ci, deuda.id_concepto)
+
         if (or) {
             throw new ConflictException({
                 success: false,
@@ -187,6 +189,7 @@ export class DeudaService {
                     monto_total: or.monto_total,
                     estado_pago: or.estado_pago,
                     fecha_modificacion: or.modificado_el,
+                    expiracion: or.expiracion,
                     conceptos: or.orden_concepto.map(element => ({
                         id_concepto: element.id_concepto,
                         descripcion: element.descripcion,
@@ -282,7 +285,67 @@ export class DeudaService {
         }
     }
 
+    // Generar un QR directamente (LUKA)
+    async crearOrdenQR(deuda: CreateGenerarQrDto) {
+        // Verificar si la deuda si existe
+        const or = await this.ordenService.findOneByCodigo(deuda.codigo_pago.toString())
+        if (!or) {
+            throw new NotFoundException({
+                success: false,
+                message: 'La deuda no existe',
+                error: 'NotFoundException'
+            })
+        }
+
+        // Obtener el dia actual con hora 23:59:59 como expiración
+        const now = new Date();
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        const fecha = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} 23:59:59`;
+
+        // Actualizar la deuda
+        const orden = await this.ordenService.update(or.id, {
+            comision: 1,
+            expiracion: deuda.expiracion ?? fecha,
+            qr_codigo: deuda.qr_codigo ?? null,
+            codigo_transaccion: deuda.codigo_transaccion ?? null,
+            nota_adicional: deuda.nota ?? null,
+            url_imagen: deuda.url_imagen ?? null
+        })
+
+        // Verificar que se actualizo correctamente
+        if (orden.affected === 0) {
+            throw new BadRequestException({
+                success: false,
+                message: 'Error al guardar los datos',
+                error: 'BadRequestException'
+            })
+        }
+
+        // Obtener el nuevo registro actualizado para retornar el resumen
+        const or2 = await this.ordenService.findOne(or.id)
+        return {
+            success: true,
+            message: 'QR generado correctamente',
+            data: {
+                codigo_pago: or2.codigo_pago,
+                descripcion: or2.descripcion,
+                monto_total: or2.monto_total,
+                estado_pago: or2.estado_pago,
+                url_imagen: or2.url_imagen,
+                fecha_actualizado: or2.modificado_el,
+                conceptos: or2.orden_concepto.map(element => ({
+                    descripcion: element.descripcion,
+                    monto_minimo: element.monto_minimo,
+                    gestion: element.gestion,
+                    carrera: element.carrera
+                })),
+            }
+        }
+    }
+
+    // Función para pagar la deuda, parametros CI y COD para validar la deuda
     async pagarDeuda(ci: string, cod: string, pago: CreatePagoDto) {
+        // Verificar si la deuda si existe
         let orden = await this.ordenService.findByCod(cod, ci)
 
         if (!orden) {
@@ -293,16 +356,42 @@ export class DeudaService {
             })
         }
 
-        // Validar expiracion
-        console.log(new Date(pago.expiracion));
-        console.log(new Date());
+        // Verificar que la deuda este pendiente
+        if (orden.estado_pago !== EstadoPago.EN_PROCESO) {
+            throw new ConflictException({
+                success: false,
+                message: 'Esta deuda ya fue procesada',
+                error: 'ConflictException',
+                data: {
+                    codigo_pago: orden.codigo_pago,
+                    descripcion: orden.descripcion,
+                    monto_total: orden.monto_total,
+                    estado_pago: orden.estado_pago,
+                    fecha_deuda: orden.modificado_el,
+                    expiracion: orden.expiracion,
+                    conceptos: orden.orden_concepto.map(element => ({
+                        id_concepto: element.id,
+                        descripcion: element.descripcion,
+                        gestion: element.gestion,
+                        carrera: element.carrera,
+                        monto_minimo: element.monto_minimo
+                    }))
+                }
+            })
+        }
 
-        if (pago.expiracion) {
-            if (new Date(pago.expiracion) < new Date()) {
+        // console.log(new Date(orden.expiracion));
+        // console.log(new Date());
+        // console.log(new Date(orden.expiracion) < new Date());
+
+        // Validar la fecha de expiracion
+        if (orden.expiracion) {
+            if (new Date(orden.expiracion) < new Date()) {
                 await this.ordenService.update(orden.id, {
                     estado_pago: EstadoPago.EXPIRADO
                 })
 
+                // Cuando la fecha de expiración ya terminó
                 throw new BadRequestException({
                     success: false,
                     message: 'Esta deuda ya expiro',
@@ -313,7 +402,7 @@ export class DeudaService {
                         monto_total: orden.monto_total,
                         estado_pago: EstadoPago.EXPIRADO,
                         fecha_deuda: orden.modificado_el,
-                        expiracion: pago.expiracion ?? null,
+                        expiracion: orden.expiracion,
                         conceptos: orden.orden_concepto.map(element => ({
                             id_concepto: element.id,
                             descripcion: element.descripcion,
@@ -326,39 +415,14 @@ export class DeudaService {
             }
         }
 
-        if (orden.estado_pago !== EstadoPago.EN_PROCESO) {
-            throw new ConflictException({
-                success: false,
-                message: 'Esta deuda ya fue procesada',
-                error: 'ConflictException',
-                data: {
-                    codigo_pago: orden.codigo_pago,
-                    descripcion: orden.descripcion,
-                    monto_total: orden.monto_total,
-                    estado_pago: orden.estado_pago,
-                    fecha_deuda: orden.modificado_el,
-                    expiracion: pago.expiracion ?? null,
-                    conceptos: orden.orden_concepto.map(element => ({
-                        id_concepto: element.id,
-                        descripcion: element.descripcion,
-                        gestion: element.gestion,
-                        carrera: element.carrera,
-                        monto_minimo: element.monto_minimo
-                    }))
-                }
-            })
-        }
-
+        // Actualizar la deuda con el nuevo estado
         const updateOrdenDto: UpdateOrdenDto = {
             estado_pago: pago.estado_pago,
-            nota_adicional: pago.nota,
-            expiracion: pago.expiracion,
-            codigo_transaccion: pago.codigo_transaccion,
-            qr_codigo: pago.qr_codigo
+            nota_adicional: pago.nota
         }
 
+        // Verificar que se actualizó correctamente
         const update = await this.ordenService.update(orden.id, updateOrdenDto)
-
         if (update.affected === 0) {
             throw new BadRequestException({
                 success: false,
@@ -377,8 +441,14 @@ export class DeudaService {
                 estado_pago: pago.estado_pago,
                 nota_adicional: pago.nota,
                 fecha_deuda: new Date(),
-                expiracion: pago.expiracion,
-                conceptos: orden.orden_concepto
+                expiracion: orden.expiracion,
+                conceptos: orden.orden_concepto.map(element => ({
+                    id_concepto: element.id,
+                    descripcion: element.descripcion,
+                    gestion: element.gestion,
+                    carrera: element.carrera,
+                    monto_minimo: element.monto_minimo
+                }))
             }
         }
     }

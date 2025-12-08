@@ -47,4 +47,9 @@ export class CreateOrdenDto {
     @IsString({ message: 'La nota adicional debe ser texto' })
     @MaxLength(255, { message: 'La nota adicional no puede superar los 255 caracteres' })
     nota_adicional?: string
+
+    @IsOptional()
+    @IsString({ message: 'La URL de la imagen debe ser texto' })
+    @MaxLength(255, { message: 'La URL no puede superar los 255 caracteres' })
+    url_imagen?: string
 }

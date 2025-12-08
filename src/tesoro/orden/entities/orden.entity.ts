@@ -26,7 +26,7 @@ export class Orden {
     codigo_transaccion?: string
 
     @Column({ type: 'timestamp', nullable: true })
-    expiracion?: Timestamp
+    expiracion?: string
 
     @Column({ type: 'enum', enum: EstadoPago, default: EstadoPago.EN_PROCESO })
     estado_pago: EstadoPago
@@ -39,6 +39,9 @@ export class Orden {
 
     @Column({ nullable: true })
     nota_adicional?: string
+
+    @Column({ nullable: true })
+    url_imagen?: string
 
     @Column({ type: 'timestamp' })
     creado_el: Timestamp

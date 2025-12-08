@@ -28,15 +28,15 @@ export class CreateGenerarQrDto {
     @IsString({ message: 'El codigo de la transacción debe ser un texto' })
     codigo_transaccion?: string
 
-    @ApiProperty({ description: 'Nota adicional de la deuda registrada', required: false })
-    @IsOptional()
-    @IsString({ message: 'La nota adicional debe ser un texto' })
-    @MaxLength(255, { message: 'La nota no puede superar los 255 caracteres' })
-    nota?: string
-
     @ApiProperty({ description: 'URL de la imagen QR generada', required: false })
     @IsOptional()
     @IsString({ message: 'La URL debe ser un texto' })
     @MaxLength(255, { message: 'La URL no puede superar los 255 caracteres' })
     url_imagen?: string
+
+    @ApiProperty({ description: 'Nota adicional de la deuda registrada', required: false })
+    @IsOptional()
+    @IsString({ message: 'La nota adicional debe ser un texto' })
+    @MaxLength(255, { message: 'La nota no puede superar los 255 caracteres' })
+    nota?: string
 }

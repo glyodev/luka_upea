@@ -129,8 +129,8 @@ export class DeudaService {
         }
     }
 
-    async findByCod(cod: string, ci: string) {
-        const deuda: Orden = await this.ordenService.findByCod(cod, ci);
+    async findByCod(cod: string) {
+        const deuda: Orden = await this.ordenService.findByCod(cod);
         let deudaPersona = {}
 
         if (!deuda) {
@@ -297,6 +297,30 @@ export class DeudaService {
             })
         }
 
+        // Verificar que la deuda este pendiente
+        if (or.estado_pago !== EstadoPago.EN_PROCESO) {
+            throw new ConflictException({
+                success: false,
+                message: 'Esta deuda ya fue procesada',
+                error: 'ConflictException',
+                data: {
+                    codigo_pago: or.codigo_pago,
+                    descripcion: or.descripcion,
+                    monto_total: or.monto_total,
+                    estado_pago: or.estado_pago,
+                    url_imagen: or.url_imagen,
+                    fecha_actualizado: or.modificado_el,
+                    conceptos: or.orden_concepto.map(element => ({
+                        id_concepto: element.id,
+                        descripcion: element.descripcion,
+                        gestion: element.gestion,
+                        carrera: element.carrera,
+                        monto_minimo: element.monto_minimo
+                    }))
+                }
+            })
+        }
+
         // Obtener el dia actual con hora 23:59:59 como expiración
         const now = new Date();
         const pad = (n: number) => n.toString().padStart(2, '0');
@@ -334,6 +358,7 @@ export class DeudaService {
                 url_imagen: or2.url_imagen,
                 fecha_actualizado: or2.modificado_el,
                 conceptos: or2.orden_concepto.map(element => ({
+                    id_concepto: or2.id,
                     descripcion: element.descripcion,
                     monto_minimo: element.monto_minimo,
                     gestion: element.gestion,
@@ -344,9 +369,9 @@ export class DeudaService {
     }
 
     // Función para pagar la deuda, parametros CI y COD para validar la deuda
-    async pagarDeuda(ci: string, cod: string, pago: CreatePagoDto) {
+    async pagarDeuda(cod: string, pago: CreatePagoDto) {
         // Verificar si la deuda si existe
-        let orden = await this.ordenService.findByCod(cod, ci)
+        let orden = await this.ordenService.findByCod(cod)
 
         if (!orden) {
             throw new NotFoundException({
@@ -367,8 +392,8 @@ export class DeudaService {
                     descripcion: orden.descripcion,
                     monto_total: orden.monto_total,
                     estado_pago: orden.estado_pago,
-                    fecha_deuda: orden.modificado_el,
-                    expiracion: orden.expiracion,
+                    url_imagen: orden.url_imagen,
+                    fecha_actualizado: orden.modificado_el,
                     conceptos: orden.orden_concepto.map(element => ({
                         id_concepto: element.id,
                         descripcion: element.descripcion,
@@ -401,8 +426,8 @@ export class DeudaService {
                         descripcion: orden.descripcion,
                         monto_total: orden.monto_total,
                         estado_pago: EstadoPago.EXPIRADO,
-                        fecha_deuda: orden.modificado_el,
-                        expiracion: orden.expiracion,
+                        url_imagen: orden.url_imagen,
+                        fecha_actualizado: orden.modificado_el,
                         conceptos: orden.orden_concepto.map(element => ({
                             id_concepto: element.id,
                             descripcion: element.descripcion,
@@ -440,8 +465,8 @@ export class DeudaService {
                 monto_total: orden.monto_total,
                 estado_pago: pago.estado_pago,
                 nota_adicional: pago.nota,
-                fecha_deuda: new Date(),
-                expiracion: orden.expiracion,
+                url_imagen: orden.url_imagen,
+                fecha_actualizado: new Date(),
                 conceptos: orden.orden_concepto.map(element => ({
                     id_concepto: element.id,
                     descripcion: element.descripcion,

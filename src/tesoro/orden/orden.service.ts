@@ -39,7 +39,7 @@ export class OrdenService {
       relations: ['orden_concepto']
     });
   }
-  findByCod(cod: string, ci: string) {
+  findByCod(cod: string, ci?: string) {
     if (ci) {
       return this.ordenRepository.findOne({
         where: {
@@ -91,7 +91,7 @@ export class OrdenService {
     return await this.ordenRepository.findOne({
       where: {
         codigo_pago: codigo_pago,
-        estado_pago: EstadoPago.EN_PROCESO,
+        // estado_pago: EstadoPago.EN_PROCESO,
         eliminado_el: null
       },
       relations: {

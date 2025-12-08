@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString, MaxLength } from "class-validator";
 import { IsTimestampFormat } from "src/common/decorators/is-date-format.decorator";
 
 // Datos que LUKA debe registrar en el POST (algunos opcionales se llenan automaticamente)
@@ -31,6 +31,12 @@ export class CreateDeudaDto {
     @IsOptional()
     @IsString({ message: 'El codigo de la transacción debe ser un texto' })
     codigo_transaccion?: string
+
+    @ApiProperty({ description: 'URL de la imagen QR generada', required: false })
+    @IsOptional()
+    @IsString({ message: 'La URL debe ser un texto' })
+    @MaxLength(255, { message: 'La URL no puede superar los 255 caracteres' })
+    url_imagen?: string
 
     @ApiProperty({ description: 'Nota adicional de la deuda registrada', required: false })
     @IsOptional()
